@@ -1,11 +1,11 @@
-import express from 'express';
+const express=require('express');
 const UserRouter=require("./user");
 
 const router=express.Router();
 
-router.use("./user",UserRouter);
+router.use("/user",UserRouter);
 
-router.use("./potholes",PotholeRouter);
+//router.use("./potholes",PotholeRouter);
 
 
 module.exports=router;

@@ -1,8 +1,8 @@
-import mongoose from 'mongoose';
+const mongoose=require("mongoose");
 
-mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/Namma-road");
+mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/");
 
-const Potholeschema=new mongoose.schema({
+const Potholeschema=new mongoose.Schema({
     location:{
      lat:Number,
      long:Number
@@ -22,44 +22,44 @@ const Potholeschema=new mongoose.schema({
 })
 
 
-const UserSchema=new mongoose.schema({
 
-    firstname:{
-        type:String,
-        required:true,
-        trim:true,
-        maxlength:12
-     },
-     lastname:{
-        type:String,
-        required:true,
-        trim:true,
-        maxlength:12
 
-     },
-    username:{
-        type:String, 
-        required:true,
-        minlength:3,
-        maxlength:12,
-        trim:true,
-        lowercase:true
+const UserSchema = new mongoose.Schema({
+    firstname: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 12
     },
-    email:{type:String, 
-          required:true, 
-          Unique:true
-        },
-    password:{type:String, 
-             require:true   
-            },
+    lastname: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 12
+    },
+    username: {
+        type: String,
+        required: true,
+        minlength: 3,
+        maxlength: 12,
+        trim: true,
+        lowercase: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    password: {
+        type: String,
+        required: true
+    }
+    // totalreport:{type:Number, 
+    //              default:0
+    //      },
     
-    totalreport:{type:Number, 
-                 default:0
-         },
-    
-    Badges:[String],
-    creationTime:{type:Date  , default:Date.now}
-
+    // Badges:[String],
+    // creationTime:{type:Date  , default:Date.now}
 })
 
 const Pothole=mongoose.model("Pothole",Potholeschema);
