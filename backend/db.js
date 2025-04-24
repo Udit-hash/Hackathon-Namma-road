@@ -30,7 +30,8 @@ const UserSchema = new mongoose.Schema({
         required: true,
         trim: true,
         maxlength: 12
-    },
+        
+      },
     lastname: {
         type: String,
         required: true,
@@ -43,7 +44,8 @@ const UserSchema = new mongoose.Schema({
         minlength: 3,
         maxlength: 12,
         trim: true,
-        lowercase: true
+        lowercase: true,
+        unique: true
     },
     email: {
         type: String,
