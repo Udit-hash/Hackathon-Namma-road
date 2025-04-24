@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-mongoose.connect("mongodb+srv://raj:raj111aryan@cluster1.ufnm0.mongodb.net/NAMMAROAD");
+mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/Namma-road");
 
 const Potholeschema=new mongoose.schema({
     location:{
