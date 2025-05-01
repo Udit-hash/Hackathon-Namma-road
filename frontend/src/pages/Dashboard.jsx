@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+
 
 export const Dashboard = () => {
     const [user, setUser] = useState(null);
@@ -22,25 +21,7 @@ export const Dashboard = () => {
 
         fetchUser();
     }, []);
-    useEffect(() => {
-            // Initialize the map when the component is mounted
-            const map = L.map('map').setView([12.9716, 77.5946], 13); // Center on Bangalore with zoom level 13
-          
-            // Add OpenStreetMap tile layer (free and open source)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            }).addTo(map);
-          
-            // Add a marker at the center of Bangalore
-            const marker = L.marker([12.9716, 77.5946]).addTo(map)
-              .bindPopup('Bangalore')
-              .openPopup();
-          
-            // Cleanup function to remove the map on unmount
-            return () => {
-              map.remove();
-            };
-          }, []);
+    
 
    
     if (!user) {
@@ -59,7 +40,7 @@ export const Dashboard = () => {
         
         </div>
 
-        <div id="map" className="w-1/2 h-[50px] rounded-lg shadow-lg"></div>
+        
       
       <div className="p-6 flex-1">
         <div className="flex gap-4 mb-4">
@@ -92,6 +73,8 @@ export const Dashboard = () => {
         </div>
       </div>
     </div>
+
+
 
        
     );
