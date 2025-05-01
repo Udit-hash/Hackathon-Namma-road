@@ -28,7 +28,7 @@ router.post(
 
       const localFilePath = req.file.path;
       const CloudinaryResult = await uploadToCloudinary(localFilePath);
-      console.log(CloudinaryResult);
+      
 
       const newPothole = await Pothole.create({
         lat,
