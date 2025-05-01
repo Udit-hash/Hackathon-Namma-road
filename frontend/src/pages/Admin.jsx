@@ -1,4 +1,4 @@
-export const Leaderboard=()=>{
+export const Admin=()=>{
     return <div>
         
     </div>

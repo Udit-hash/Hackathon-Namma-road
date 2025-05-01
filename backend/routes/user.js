@@ -113,4 +113,21 @@ router.put("/update",authMiddleware,async(req,res)=>{
     })
 
 })
+
+router.get("/me",authMiddleware,async(req,res)=>{
+    const user=await User.findById(req.userId)
+
+    if(!user){
+        res.status(411).json({
+            msg:"User not found"
+        })
+    }
+    res.json({
+        firstname:user.firstname,
+        lastname:user.lastname,
+        username:user.username,
+        email:user.email,
+       
+    })
+})
 module.exports=router;

@@ -11,7 +11,7 @@ import axios from "axios"
 
 export const Signin = () => {
 
-    const[username,setUsername]=useState("");
+    const[email,setEmail]=useState("");
     const [password,setPassword]=useState("");
     const navigate=useNavigate();
 
@@ -23,7 +23,7 @@ export const Signin = () => {
         <Heading label={"Sign in"} />
         <SubHeading label={"Enter your credentials to access your account"} />
         <InputBox onChange={(e)=>{
-            setUsername(e.target.value);
+            setEmail(e.target.value);
         }} placeholder="xyz@gmail.com" label={"Email"} />
 
         <InputBox onChange={(e)=>{
@@ -32,7 +32,7 @@ export const Signin = () => {
         <div className="pt-4">
           <Button onClick={async(e)=>{
                 const response=await axios.post("http://localhost:3000/api/v1/user/signin",{
-                    username,
+                    email,
                     password
           });
                 localStorage.setItem("token",response.data.token);

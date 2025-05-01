@@ -5,6 +5,9 @@ import { Appbar } from './components/Appbar'
 import { Home } from './pages/Home'
 import { Footer } from './components/footer'
 import { Report } from './pages/Report'
+import { Dashboard } from './pages/Dashboard'
+import { Leaderboard } from './pages/Leaderboard'
+import { Admin } from './pages/Admin'
 function App() {
   return (
     <BrowserRouter>
@@ -14,6 +17,10 @@ function App() {
         <Route path="/signin" element={<Signin />} />
         <Route path="/" element={<Home/>}/>
         <Route path="/report" element ={<Report/>}/>
+        <Route path="/dashboard" element={<Dashboard/>}/>
+        <Route path="/leaderboard" element={<Leaderboard/>}/>
+        <Route path="/admin" element={<Admin/>}/>
+
       </Routes>
       <Footer/>
     </BrowserRouter>

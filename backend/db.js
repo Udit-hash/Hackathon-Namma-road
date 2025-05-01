@@ -53,10 +53,10 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
-    }
-    // totalreport:{type:Number, 
-    //              default:0
-    //      },
+    },
+    totalreport:{type:Number, 
+                  default:0
+         }
     
     // Badges:[String],
     // creationTime:{type:Date  , default:Date.now}
