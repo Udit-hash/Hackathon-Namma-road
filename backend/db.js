@@ -3,12 +3,10 @@ const mongoose=require("mongoose");
 mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/");
 
 const Potholeschema=new mongoose.Schema({
-    location:{
      lat:Number,
-     long:Number
-    },
+     long:Number,
     photoUrl:String ,
-    photoDesc:String ,
+    description:String ,
     reportedBy:{type: mongoose.Schema.Types.ObjectId , ref:'user'},
     Status:{type:String, 
             default:'pending'
@@ -31,13 +29,13 @@ const UserSchema = new mongoose.Schema({
         trim: true,
         maxlength: 12
         
-      },
+     },
     lastname: {
         type: String,
         required: true,
         trim: true,
         maxlength: 12
-    },
+     },
     username: {
         type: String,
         required: true,
@@ -51,7 +49,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true
-    },
+     },
     password: {
         type: String,
         required: true
