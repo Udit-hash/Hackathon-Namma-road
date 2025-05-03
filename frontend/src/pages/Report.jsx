@@ -1,15 +1,64 @@
 import { useState } from "react"
 import { Camera } from "lucide-react"
+import axios from "axios"
 
 export const Report = () => {
   const [image, setImage] = useState(null)
-
+  const [gpsData,setGpsData]=useState({lat:null,long:null});
+  const[description,setDescription]=useState("");
   const handleFileChange = (e) => {
     const file = e.target.files[0]
+
     if (file) {
       setImage(URL.createObjectURL(file))
+
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition((position)=>{
+          setGpsData({
+            lat:position.coords.latitude,
+            long:position.coords.longitude
+          })
+        }),
+        (error)=>{
+            alert("could not fetch location")
+        }
+      }
+      else{
+        alert("Geolocation is not supported by this browser");
+      }
     }
-  }
+  };
+
+  const handleSubmit=async()=>{
+
+    const fileInput = document.querySelector("#upload-photo");
+    const file = fileInput?.files[0];
+    if(!file){
+      alert("Please!!!upload photo of pothole");
+      return;
+    }
+      const formData=new FormData();
+      formData.append("image", file);
+      formData.append("lat",gpsData.lat||"not available");
+      formData.append("long",gpsData.long||"not available");
+      formData.append("description", description);
+
+
+      try{
+        const response=await axios.post("http://localhost:3000/api/v1/potholes/report",
+          formData,
+          {
+            headers:{
+              Authorization:"Bearer "+localStorage.getItem("token"),
+            },
+          }
+        )
+        console.log("response from server:",response.data);
+      }catch(error){
+        console.error("Error submitting the report:", error.response?.data || error.message);
+        alert("Error submitting the report")
+      }
+    };
 
   return (
     <div>
@@ -54,11 +103,14 @@ export const Report = () => {
             <p className="mt-4 text-bold-900">Description</p>
             <div className="flex flex-col">
             <textarea
-                rows="4"
-                className="w-full resize-y mb-6 min-h-[3rem] max-h-[12rem] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows="4"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full resize-y mb-6 min-h-[3rem] max-h-[12rem] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+
             <div className="flex items-center justify-end">
-                <button className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700 text-right">Report</button>
+                <button className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700 text-right" onClick={handleSubmit}>Report</button>
             </div>
             </div>
           </div>

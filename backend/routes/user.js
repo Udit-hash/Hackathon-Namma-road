@@ -127,7 +127,7 @@ router.get("/me",authMiddleware,async(req,res)=>{
         lastname:user.lastname,
         username:user.username,
         email:user.email,
-       
+        totalreport:user.totalreport
     })
 })
 module.exports=router;

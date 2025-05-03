@@ -2,24 +2,50 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect } from "react";
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import axios from "axios";
 
 export const Home = () => {
     const navigate = useNavigate();
     useEffect(() => {
-        // Initialize the map when the component is mounted
-        const map = L.map('map').setView([12.9716, 77.5946], 13); // Center on Bangalore with zoom level 13
+        
+        const map = L.map('map').setView([12.9716, 77.5946], 13); 
       
-        // Add OpenStreetMap tile layer (free and open source)
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
       
-        // Add a marker at the center of Bangalore
-        const marker = L.marker([12.9716, 77.5946]).addTo(map)
-          .bindPopup('Bangalore')
-          .openPopup();
+        
+        const potholeIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        const fetchPotholes = async () => {
+            try {
+              const response = await axios.get("http://localhost:3000/api/v1/potholes/all");
+              const data = response.data;
+          
+              data.potholes.forEach((pothole) => {
+                if (pothole.lat && pothole.long) {
+                  L.marker([pothole.lat, pothole.long],{icon:potholeIcon}).addTo(map)
+                  .bindPopup(`
+                    <strong>Description:</strong> ${pothole.description || "No description"}<br/>
+                    ${pothole.photoUrl ? `<img src="${pothole.photoUrl}" alt="Pothole" style="width:100px;height:auto;"/>` : ""}
+                  `);
+                }
+              });
+            } catch (err) {
+              console.error("Failed to fetch potholes:", err);
+            }
+          };
+          
+        
+        fetchPotholes();
       
-        // Cleanup function to remove the map on unmount
         return () => {
           map.remove();
         };

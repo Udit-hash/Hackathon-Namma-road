@@ -3,8 +3,8 @@ const mongoose=require("mongoose");
 mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/");
 
 const Potholeschema=new mongoose.Schema({
-     lat:Number,
-     long:Number,
+    lat:Number,
+    long:Number,
     photoUrl:String ,
     description:String ,
     reportedBy:{type: mongoose.Schema.Types.ObjectId , ref:'user'},

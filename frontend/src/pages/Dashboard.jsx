@@ -4,6 +4,7 @@ import axios from "axios";
 
 export const Dashboard = () => {
     const [user, setUser] = useState(null);
+    const[pothole,setPothole]=useState(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -20,6 +21,23 @@ export const Dashboard = () => {
         };
 
         fetchUser();
+        const fetchPothole=async()=>{
+          try{
+            const res=await axios.get("http://localhost:3000/api/v1/potholes/my-report",{
+              headers:{
+                Authorization:"Bearer "+localStorage.getItem("token")
+              }
+            });
+            setPothole(res.data);
+          }catch(error){
+            console.error("failed to fetch",error);
+            alert("no potholes found!!!");
+          }
+        }
+
+        fetchPothole();
+
+        
     }, []);
     
 
