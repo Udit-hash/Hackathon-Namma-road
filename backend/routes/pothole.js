@@ -52,4 +52,20 @@ router.post(
   }
 );
 
+router.get("/my-report",userAuth,async(req,res)=>{
+  try{
+    const reports=await Pothole.find({
+      user : req.userId}).sort({date:-1});
+  
+     const count=Pothole.length;
+
+     res.status(200).json({
+       reports,
+       count
+     });
+    }catch(err){
+      console.log(err.message);
+      res.status(500).send("server error- couldn't fetch pothole data");
+    }
+  });
 module.exports = router;
