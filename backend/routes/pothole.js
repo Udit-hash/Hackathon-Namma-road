@@ -12,23 +12,27 @@ router.post(
   upload.single("image"),
   PotholeValidator,
   async function(req, res) {
-    console.log("hey got it");
     try {
       if (!req.file) {
         return res.status(400).json({
           message: "No File Uploaded"
         });
       }
-      console.log("Received request body:", req.body);
-      
-   
-      const lat = req.body.lat;
-      const long = req.body.long;
-      const description=req.body.description;
+
+      const lat = parseFloat(req.body.lat);
+      const long = parseFloat(req.body.long);
+      const description = req.body.description;
+
+      if (isNaN(lat) || isNaN(long)) {
+        return res.status(400).json({
+          message: "Invalid latitude or longitude values"
+        });
+      }
 
       const localFilePath = req.file.path;
       const CloudinaryResult = await uploadToCloudinary(localFilePath);
-      
+
+      console.log("Reporting userId:", req.userId);
 
       const newPothole = await Pothole.create({
         lat,
@@ -43,29 +47,31 @@ router.post(
         pothole: newPothole, 
       });
     } catch (error) {
-      console.error("error uploading photos", error);
+      console.error("Error uploading pothole:", error);
       res.status(500).json({
-        message: "failed to report pothole",
+        message: "Failed to report pothole",
         error: error.message
       });
     }
   }
 );
 
-router.get("/my-report",userAuth,async(req,res)=>{
-  try{
-    const reports=await Pothole.find({
-      user : req.userId}).sort({date:-1});
-  
-     const count=Pothole.length;
+router.get("/my-report", authMiddleware, async (req, res) => {
+  try {
+    const reports = await Pothole.find({
+      reportedBy: req.userId
+    }).sort({ date: -1 });
 
-     res.status(200).json({
-       reports,
-       count
-     });
-    }catch(err){
-      console.log(err.message);
-      res.status(500).send("server error- couldn't fetch pothole data");
-    }
-  });
+    const count = reports.length;
+
+    res.status(200).json({
+      reports,
+      count
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send("Server error - couldn't fetch pothole data");
+  }
+});
+
 module.exports = router;
