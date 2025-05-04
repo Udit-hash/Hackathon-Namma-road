@@ -1,11 +1,13 @@
 import { useState } from "react"
 import { Camera } from "lucide-react"
 import axios from "axios"
+import { useNavigate } from "react-router"
 
 export const Report = () => {
   const [image, setImage] = useState(null)
   const [gpsData,setGpsData]=useState({lat:null,long:null});
   const[description,setDescription]=useState("");
+  const navigate=useNavigate();
   const handleFileChange = (e) => {
     const file = e.target.files[0]
 
@@ -110,7 +112,14 @@ export const Report = () => {
             />
 
             <div className="flex items-center justify-end">
-                <button className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700 text-right" onClick={handleSubmit}>Report</button>
+                <button className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700 text-right" 
+                 onClick={() => {
+                  handleSubmit();
+                  navigate("/dashboard");
+                }}
+              
+                  
+                  >Report</button>
             </div>
             </div>
           </div>

@@ -39,7 +39,9 @@ router.post("/signup",async(req,res)=>{
         lastname:req.body.lastname,
         username:req.body.username,
         email:req.body.email,
-        password:req.body.password
+        password:req.body.password,
+        badges:['Road Warrior']
+
     })
 
     const userId=user._id; 
@@ -127,7 +129,9 @@ router.get("/me",authMiddleware,async(req,res)=>{
         lastname:user.lastname,
         username:user.username,
         email:user.email,
-        totalreport:user.totalreport
+        totalreport:user.totalreport,
+        points:user.points,
+        badges:user.badges
     })
 })
 module.exports=router;
