@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // Add connection error handling
-mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/")
+mongoose.connect("mongodb://localhost:27017/pothole_reporting")
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => {
     console.error("MongoDB connection error:", err);
