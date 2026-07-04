@@ -8,6 +8,9 @@ import { Report } from './pages/Report'
 import { Dashboard } from './pages/Dashboard'
 import { Leaderboard } from './pages/Leaderboard'
 import { Admin } from './pages/Admin'
+import { AdminRoute } from './components/AdminRoute'
+import { NotAuthorized } from './pages/NotAuthorized'
+
 function App() {
   return (
     <BrowserRouter>
@@ -19,7 +22,10 @@ function App() {
         <Route path="/report" element ={<Report/>}/>
         <Route path="/dashboard" element={<Dashboard/>}/>
         <Route path="/leaderboard" element={<Leaderboard/>}/>
-        <Route path="/admin" element={<Admin/>}/>
+        <Route path="/admin" element={<AdminRoute> <Admin /> </AdminRoute>}/>
+
+        <Route path="/not-authorized" element={<NotAuthorized />} />
+
 
       </Routes>
       <Footer/>

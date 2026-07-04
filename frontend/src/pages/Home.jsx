@@ -7,49 +7,64 @@ import axios from "axios";
 export const Home = () => {
     const navigate = useNavigate();
     useEffect(() => {
-        
-        const map = L.map('map').setView([12.9716, 77.5946], 13); 
-      
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(map);
-      
-        
-        const potholeIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-        const fetchPotholes = async () => {
-            try {
-              const response = await axios.get("http://localhost:3000/api/v1/potholes/all");
-              const data = response.data;
-          
-              data.potholes.forEach((pothole) => {
-                if (pothole.lat && pothole.long) {
-                  L.marker([pothole.lat, pothole.long],{icon:potholeIcon}).addTo(map)
-                  .bindPopup(`
-                    <strong>Description:</strong> ${pothole.description || "No description"}<br/>
-                    ${pothole.photoUrl ? `<img src="${pothole.photoUrl}" alt="Pothole" style="width:100px;height:auto;"/>` : ""}
-                  `);
-                }
-              });
-            } catch (err) {
-              console.error("Failed to fetch potholes:", err);
-            }
-          };
-          
-        
-        fetchPotholes();
-      
-        return () => {
-          map.remove();
-        };
-      }, []);
+  const mapContainer = document.getElementById("map");
+  if (!mapContainer) return;
+
+  const map = L.map("map").setView([12.9716, 77.5946], 13);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  const potholeIcon = L.icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png",
+    shadowUrl:
+      "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+  const fetchPotholes = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/api/v1/potholes/all");
+      const data = response.data;
+
+      // Clear only markers
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) map.removeLayer(layer);
+      });
+
+      // Add new markers
+      data.potholes.forEach((pothole) => {
+        if (pothole.lat && pothole.long) {
+          L.marker([pothole.lat, pothole.long], { icon: potholeIcon })
+            .addTo(map)
+            .bindPopup(`
+              <strong>Description:</strong> ${pothole.description || "No description"}<br/>
+              ${pothole.photoUrl
+                ? `<img src="${pothole.photoUrl}" alt="Pothole" style="width:100px;height:auto;"/>`
+                : ""}
+            `);
+        }
+      });
+    } catch (err) {
+      console.error("Failed to fetch potholes:", err);
+    }
+  };
+
+  fetchPotholes();
+  const interval = setInterval(fetchPotholes, 10000);
+
+  return () => {
+    clearInterval(interval);
+    map.remove();
+  };
+}, []);
+
 
     return (
         <div>

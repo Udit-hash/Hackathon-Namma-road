@@ -1,30 +1,45 @@
 const mongoose = require("mongoose");
+require('dotenv').config(); 
 
-// Add connection error handling
-mongoose.connect("mongodb+srv://Udit:D1fHFkob41JOjQ4Z@cluster0.um125dd.mongodb.net/")
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Connected to MongoDB"))
   .catch(err => {
     console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit if cannot connect to database
+    process.exit(1); 
   });
 
-const Potholeschema = new mongoose.Schema({
-  lat: Number,
-  long: Number,
-  photoUrl: String,
-  description: String,
-  reportedBy: {
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User' 
-  },
-  status: {
-    type: String, 
-    default: 'pending'
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
+const PotholeSchema = new mongoose.Schema({
+
+      lat:Number,
+
+      long:Number,
+
+      description:String,
+
+      photoUrl:String,
+
+
+  reportedBy:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:"User"
+    },
+
+
+  status:{
+      type:String,
+      enum:[
+          "pending",
+          "important",
+          "completed",
+          "resolved"
+      ],
+      default:"pending"
   }
+
+
+  },
+  {
+  timestamps:true
 });
 
 const UserSchema = new mongoose.Schema({
@@ -71,10 +86,15 @@ const UserSchema = new mongoose.Schema({
    points: {
     type: Number,
     default: 0,
-  }
+  },
+   role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user"
+   }
 });
 
-const Pothole = mongoose.model("Pothole", Potholeschema);
+const Pothole = mongoose.model("Pothole", PotholeSchema);
 const User = mongoose.model("User", UserSchema);
 
 module.exports = {

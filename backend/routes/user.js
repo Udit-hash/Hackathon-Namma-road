@@ -4,8 +4,9 @@ const {User} = require("../db");
 const {jwt_secret} =require('./config');
 const router=express.Router();
 const {authMiddleware}=require("../middleware/userAuth")
-const jwt=require("jsonwebtoken")
-
+const jwt=require("jsonwebtoken");
+const { Underline } = require('lucide-react');
+const bcrypt = require("bcrypt");
 
 
 const signupBody=zod.object({
@@ -16,79 +17,184 @@ const signupBody=zod.object({
     password:zod.string()
 });
 
-router.post("/signup",async(req,res)=>{
-    const {success} = signupBody.safeParse(req.body);
-    if(!success){
+router.post("/signup", async (req, res) => {
+
+    const { success } = signupBody.safeParse(req.body);
+
+
+    if (!success) {
+
         return res.status(411).json({
-            msg:"Incorect Inputs/ Username already taken"
-        })
+
+            msg: "Incorrect inputs"
+
+        });
+
     }
 
-    const existingUser=await User.findOne({
-        username:req.body.username
-    })
 
-    if(existingUser){
+    const existingUser = await User.findOne({
+
+        username: req.body.username
+
+    });
+
+
+
+    if (existingUser) {
+
         return res.status(411).json({
-            msg:"User already exists"
-        })
+
+            msg: "User already exists"
+
+        });
+
     }
 
-    const user=await User.create({
-        firstname:req.body.firstname,
-        lastname:req.body.lastname,
-        username:req.body.username,
-        email:req.body.email,
-        password:req.body.password,
-        badges:['Road Warrior']
 
-    })
+    // password hashing
+    const hashedPassword = await bcrypt.hash(
+        req.body.password,
+        10
+    );
 
-    const userId=user._id; 
 
-    const token=jwt.sign({
-        userId
-    },jwt_secret);
+
+    const user = await User.create({
+
+        firstname: req.body.firstname,
+
+        lastname: req.body.lastname,
+
+        username: req.body.username,
+
+        email: req.body.email,
+
+
+        password: hashedPassword,
+
+
+        badges: [
+            "Road Warrior"
+        ]
+
+    });
+
+
+
+    const token = jwt.sign(
+
+        {
+
+            userId: user._id,
+
+            role: user.role
+
+        },
+
+        jwt_secret
+
+    );
+
+
+
 
     res.json({
-        msg:"user created succesfully",
-        token:token
-    })
-})
 
-const signinBody=zod.object({
-    email:zod.string(),
-    password:zod.string()
-})
+        msg: "User created successfully",
 
-router.post("/signin",async(req,res)=>{
-    const {success}= signinBody.safeParse(req.body);
+        token
+
+    });
+
+
+});
+
+router.post("/signin", async(req,res)=>{
+
+
+    const {success} =
+        signinBody.safeParse(req.body);
+
+
 
     if(!success){
+
         return res.status(411).json({
-            msg:"Email already taken/User exists already"
-        })
-    }
-    const user=await User.findOne({
-        email:req.body.email,
-        password:req.body.password
-    })
-    if(user){
-        const token=jwt.sign({
-            userId:user._id
-        },jwt_secret)
 
-        res.json({
-            token:token
-        })
-        return;
+            msg:"Invalid inputs"
+
+        });
+
     }
 
-    res.status(411).json({
-        msg:"Error while logging in"
-    })
+    const user =
+        await User.findOne({
 
-})
+            email:req.body.email
+
+        });
+
+
+    if(!user){
+
+
+        return res.status(411).json({
+
+            msg:"User not found"
+
+        });
+
+
+    }
+
+
+
+    const passwordMatch =
+        await bcrypt.compare(
+
+            req.body.password,
+
+            user.password
+
+        );
+
+
+    if(!passwordMatch){
+
+
+        return res.status(403).json({
+
+            msg:"Incorrect password"
+
+        });
+
+
+    }
+
+    const token = jwt.sign(
+
+        {
+
+            userId:user._id,
+
+            role:user.role
+
+        },
+
+
+        jwt_secret
+
+    );
+
+    res.json({
+
+        token
+
+    });
+
+
+});
 
 const updateBody=zod.object({
     firstname:zod.string().optional(),
@@ -116,22 +222,38 @@ router.put("/update",authMiddleware,async(req,res)=>{
 
 })
 
-router.get("/me",authMiddleware,async(req,res)=>{
-    const user=await User.findById(req.userId)
+router.get("/me", authMiddleware, async(req,res)=>{
+
+    const user = await User.findById(req.userId);
 
     if(!user){
-        res.status(411).json({
+
+        return res.status(404).json({
             msg:"User not found"
-        })
+        });
+
     }
+
+
     res.json({
+
         firstname:user.firstname,
+
         lastname:user.lastname,
+
         username:user.username,
+
         email:user.email,
+
+        role:user.role,
+
         totalreport:user.totalreport,
+
         points:user.points,
+
         badges:user.badges
-    })
-})
+
+    });
+
+});
 module.exports=router;

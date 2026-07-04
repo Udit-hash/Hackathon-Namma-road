@@ -1,5 +1,4 @@
-const jwt_secret="passwordsecret";
+require('dotenv').config();
+const jwt_secret = process.env.JWT_SECRET;
 
-module.exports={
-    jwt_secret
-}
+module.exports = { jwt_secret };

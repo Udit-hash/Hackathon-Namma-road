@@ -1,99 +1,647 @@
-const express = require('express');
-const upload = require('../middleware/multer');
+const express = require("express");
+
+const upload = require("../middleware/multer");
+
 const { authMiddleware } = require("../middleware/userAuth");
+
+const { adminAuth } = require("../middleware/adminAuth");
+
 const { uploadToCloudinary } = require("../utils/cloud");
-const { PotholeValidator } = require('../middleware/validateporthole');
-const { User,Pothole } = require("../db");
-const fs = require('fs');
+
+const { PotholeValidator } = require("../middleware/validateporthole");
+
+const { User, Pothole } = require("../db");
+
+
+
 const router = express.Router();
 
+
+
+
+// ===============================
+// USER REPORT POTHOLE
+// ===============================
+
+
 router.post(
-  "/report",
-  authMiddleware,
-  upload.single("image"),
-  PotholeValidator,
-  async function(req, res) {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
+    "/report",
 
-      const localFilePath = req.file.path;
-      const lat = req.body.lat === "not available" ? null : Number(req.body.lat);
-      const long = req.body.long === "not available" ? null : Number(req.body.long);
-      const description = req.body.description;
-      const CloudinaryResult = await uploadToCloudinary(localFilePath);
+    authMiddleware,
 
-      if (isNaN(lat) || isNaN(long)) {
-        return res.status(400).json({
-          message: "Invalid latitude or longitude values"
-        });
-      }
+    upload.single("image"),
 
-      
+    PotholeValidator,
 
-     
-      
 
-      console.log("Reporting userId:", req.userId);
+    async (req, res) => {
 
-      const newPothole = await Pothole.create({
-        lat,
-        long,
-        description,
-        photoUrl: CloudinaryResult.secure_url,
-        reportedBy: req.userId,
-      });
 
-      await User.findByIdAndUpdate(req.userId, { $inc: { points:100,totalreport: 1 } });
+        try {
 
-      const reportCount=await Pothole.countDocuments({reportedBy:req.userId})
-      if(reportCount==1){
-        const user=await User.findById(req.userId);
-        if(!user.badges.includes("First Report")){
-          user.badges.push("First Report");
-          await user.save();
+
+            if (!req.file) {
+
+                return res.status(400).json({
+
+                    message: "No file uploaded"
+
+                });
+
+            }
+
+
+
+            const lat = Number(req.body.lat);
+
+            const long = Number(req.body.long);
+
+            const description = req.body.description;
+
+
+
+            if (isNaN(lat) || isNaN(long)) {
+
+                return res.status(400).json({
+
+                    message: "Invalid location"
+
+                });
+
+            }
+
+
+
+
+            const cloudinaryResult =
+                await uploadToCloudinary(
+                    req.file.path
+                );
+
+
+
+
+
+            const newPothole =
+                await Pothole.create({
+
+
+                    lat,
+
+
+                    long,
+
+
+                    description,
+
+
+                    photoUrl:
+                        cloudinaryResult.secure_url,
+
+
+                    reportedBy:
+                        req.userId,
+
+
+                    status:"pending"
+
+
+                });
+
+
+
+
+
+
+            await User.findByIdAndUpdate(
+
+                req.userId,
+
+
+                {
+
+                    $inc: {
+
+                        points:100,
+
+                        totalreport:1
+
+                    }
+
+                }
+
+            );
+
+
+
+
+
+
+            const reportCount =
+                await Pothole.countDocuments({
+
+                    reportedBy:req.userId
+
+                });
+
+
+
+
+
+
+            const user =
+                await User.findById(
+                    req.userId
+                );
+
+
+
+
+
+            if(reportCount === 1){
+
+
+                if(
+                    !user.badges.includes(
+                        "First Report"
+                    )
+                ){
+
+                    user.badges.push(
+                        "First Report"
+                    );
+
+                }
+
+
+            }
+
+
+
+
+
+            if(reportCount >= 10){
+
+
+                if(
+                    !user.badges.includes(
+                        "Top Contributor"
+                    )
+                ){
+
+                    user.badges.push(
+                        "Top Contributor"
+                    );
+
+                }
+
+            }
+
+
+
+
+            await user.save();
+
+
+
+
+            res.status(201).json({
+
+                message:
+                    "Pothole reported successfully",
+
+
+                pothole:newPothole
+
+
+            });
+
+
+
+
+        } catch(error){
+
+
+            console.log(error);
+
+
+            res.status(500).json({
+
+                message:
+                    "Failed to report pothole",
+
+
+                error:error.message
+
+            });
+
+
         }
-      }
-      if(reportCount>=10){
-        const user=await User.findById(req.userId);
-        if(!user.badges.includes("Top Contributor")){
-          user.badges.push("Top Contributor");
-          await user.save();
-        }
-      }
 
 
-      res.status(201).json({
-        message: "Pothole reported successfully!",
-        pothole: newPothole,
-      });
-    } catch (error) {
-      console.error("Error uploading pothole:", error);
-      res.status(500).json({
-        message: "Failed to report pothole",
-        error: error.message
-      });
     }
-  }
 );
 
-router.get("/my-report", authMiddleware, async (req, res) => {
-  try {
-    const reports = await Pothole.find({
-      reportedBy: req.userId
-    }).sort({ date: -1 });
 
-    const count = reports.length;
 
-    res.status(200).json({
-      reports,
-      count
-  });
-  } catch (err) {
-    console.log(err.message);
-    res.status(500).send("Server error - couldn't fetch pothole data");
-  }
-});
+
+
+
+
+
+
+// ===============================
+// USER DASHBOARD REPORTS
+// ===============================
+
+
+
+router.get(
+    "/my-report",
+
+    authMiddleware,
+
+
+    async(req,res)=>{
+
+
+        try{
+
+
+            const reports =
+                await Pothole.find({
+
+                    reportedBy:req.userId
+
+                })
+
+                .sort({
+
+                    createdAt:-1
+
+                });
+
+
+
+
+
+            res.json({
+
+                reports,
+
+
+                count:reports.length
+
+            });
+
+
+
+
+        }catch(error){
+
+
+            res.status(500).json({
+
+                message:error.message
+
+            });
+
+
+        }
+
+
+    }
+);
+
+
+
+
+
+
+
+
+
+// ===============================
+// PUBLIC ALL POTHOLES MAP
+// ===============================
+
+
+
+router.get(
+    "/all",
+
+    async(req,res)=>{
+
+
+        try{
+
+
+            const potholes =
+                await Pothole.find()
+
+                .sort({
+
+                    createdAt:-1
+
+                });
+
+
+
+
+
+            res.json({
+
+                potholes
+
+            });
+
+
+
+
+        }catch(error){
+
+
+            res.status(500).json({
+
+                message:error.message
+
+            });
+
+
+        }
+
+
+    }
+);
+
+
+
+
+
+
+
+
+
+
+
+// ===============================
+// ADMIN GET ALL + FILTER
+// ===============================
+
+
+
+router.get(
+    "/admin/all",
+
+    authMiddleware,
+
+    adminAuth,
+
+
+    async(req,res)=>{
+
+
+        try{
+
+
+            const { status } = req.query;
+
+
+
+            let filter = {};
+
+
+
+            if(status){
+
+
+                filter.status = status;
+
+
+            }
+
+
+
+
+
+
+            const potholes =
+                await Pothole.find(filter)
+
+
+                .populate(
+
+                    "reportedBy",
+
+
+                    "firstname lastname email"
+
+                )
+
+
+                .sort({
+
+                    createdAt:-1
+
+                });
+
+
+
+
+
+
+            res.json({
+
+                potholes
+
+            });
+
+
+
+
+
+        }catch(error){
+
+
+            res.status(500).json({
+
+                message:error.message
+
+            });
+
+
+        }
+
+
+    }
+);
+
+
+
+
+
+
+
+
+
+// ===============================
+// ADMIN UPDATE STATUS
+// ===============================
+
+
+
+router.put(
+    "/admin/update/:id",
+
+    authMiddleware,
+
+    adminAuth,
+
+
+    async(req,res)=>{
+
+
+        try{
+
+
+            const { status } = req.body;
+
+
+
+
+
+            const pothole =
+                await Pothole.findByIdAndUpdate(
+
+
+                    req.params.id,
+
+
+
+                    {
+
+                        status:status
+
+                    },
+
+
+
+                    {
+
+                        new:true
+
+                    }
+
+
+                );
+
+
+
+
+
+
+            res.json({
+
+                message:
+                    "Status updated successfully",
+
+
+                pothole
+
+            });
+
+
+
+
+
+        }catch(error){
+
+
+
+            res.status(500).json({
+
+                message:error.message
+
+            });
+
+
+
+        }
+
+
+    }
+);
+
+
+
+
+
+
+
+
+
+
+// ===============================
+// ADMIN DELETE REPORT
+// ===============================
+
+
+
+router.delete(
+    "/admin/delete/:id",
+
+    authMiddleware,
+
+    adminAuth,
+
+
+    async(req,res)=>{
+
+
+        try{
+
+
+            await Pothole.findByIdAndDelete(
+
+                req.params.id
+
+            );
+
+
+
+
+
+            res.json({
+
+                message:
+                    "Report deleted successfully"
+
+            });
+
+
+
+
+
+        }catch(error){
+
+
+
+            res.status(500).json({
+
+                message:error.message
+
+            });
+
+
+
+        }
+
+
+    }
+);
+
+
+
+
 
 module.exports = router;

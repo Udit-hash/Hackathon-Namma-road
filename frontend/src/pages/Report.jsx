@@ -1,132 +1,403 @@
-import { useState } from "react"
-import { Camera } from "lucide-react"
-import axios from "axios"
-import { useNavigate } from "react-router"
+import { useState } from "react";
+import { Camera } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
 export const Report = () => {
-  const [image, setImage] = useState(null)
-  const [gpsData,setGpsData]=useState({lat:null,long:null});
-  const[description,setDescription]=useState("");
-  const navigate=useNavigate();
+
+  const [image, setImage] = useState(null);        // actual file
+  const [preview, setPreview] = useState(null);    // preview url
+
+  const [gpsData, setGpsData] = useState({
+    lat: null,
+    long: null
+  });
+
+  const [description, setDescription] = useState("");
+
+  const navigate = useNavigate();
+
+
   const handleFileChange = (e) => {
-    const file = e.target.files[0]
 
-    if (file) {
-      setImage(URL.createObjectURL(file))
+    const file = e.target.files[0];
 
+    if(file){
+
+      // save actual file for backend
+      setImage(file);
+
+
+      // save preview only for UI
+      setPreview(URL.createObjectURL(file));
+
+
+      // get GPS location
       if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition((position)=>{
-          setGpsData({
-            lat:position.coords.latitude,
-            long:position.coords.longitude
-          })
-        }),
-        (error)=>{
-            alert("could not fetch location")
-        }
+
+        navigator.geolocation.getCurrentPosition(
+
+          (position)=>{
+
+            setGpsData({
+
+              lat: position.coords.latitude,
+              long: position.coords.longitude
+
+            });
+
+            console.log(
+              "GPS:",
+              position.coords.latitude,
+              position.coords.longitude
+            );
+
+          },
+
+
+          (error)=>{
+
+            console.log(error);
+
+            alert("Could not fetch location");
+
+          }
+
+        );
+
+      }else{
+
+        alert(
+          "Geolocation is not supported by this browser"
+        );
+
       }
-      else{
-        alert("Geolocation is not supported by this browser");
-      }
+
     }
+
   };
 
-  const handleSubmit=async()=>{
 
-    const fileInput = document.querySelector("#upload-photo");
-    const file = fileInput?.files[0];
-    if(!file){
-      alert("Please!!!upload photo of pothole");
+
+  const handleSubmit = async () => {
+
+
+    if(!image){
+
+      alert("Please upload pothole photo");
+
       return;
+
     }
-      const formData=new FormData();
-      formData.append("image", file);
-      formData.append("lat",gpsData.lat||"not available");
-      formData.append("long",gpsData.long||"not available");
-      formData.append("description", description);
 
 
-      try{
-        const response=await axios.post("http://localhost:3000/api/v1/potholes/report",
-          formData,
-          {
-            headers:{
-              Authorization:"Bearer "+localStorage.getItem("token"),
-            },
+    if(description.length < 5){
+
+      alert(
+        "Description should contain at least 5 characters"
+      );
+
+      return;
+
+    }
+
+
+
+    const formData = new FormData();
+
+
+    formData.append(
+      "image",
+      image
+    );
+
+
+    formData.append(
+      "lat",
+      gpsData.lat
+    );
+
+
+    formData.append(
+      "long",
+      gpsData.long
+    );
+
+
+    formData.append(
+      "description",
+      description
+    );
+
+
+
+    // debugging
+    for(let pair of formData.entries()){
+
+      console.log(
+        pair[0],
+        pair[1]
+      );
+
+    }
+
+
+
+    try{
+
+      const response = await axios.post(
+
+        "http://localhost:3000/api/v1/potholes/report",
+
+        formData,
+
+        {
+          headers:{
+
+            Authorization:
+              "Bearer " + localStorage.getItem("token"),
+
+            "Content-Type":"multipart/form-data"
+
           }
-        )
-        console.log("response from server:",response.data);
-      }catch(error){
-        console.error("Error submitting the report:", error.response?.data || error.message);
-        alert("Error submitting the report")
+        }
+
+      );
+
+
+      console.log(
+        "Response:",
+        response.data
+      );
+
+
+      alert(
+        "Pothole reported successfully"
+      );
+
+
+      navigate(
+        "/dashboard"
+      );
+
+
+
+    }catch(error){
+
+
+      console.log(error);
+
+
+      if(error.response){
+
+        alert(
+          error.response.data.message
+        );
+
+      }else{
+
+        alert(
+          "Something went wrong"
+        );
+
       }
-    };
+
+    }
+
+  };
+
+
+
 
   return (
+
     <div>
+
       <section className="w-full bg-white py-12">
+
         <div className="max-w-5xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-5 text-gray-900">Report a pothole</h2>
-          <p className="text-xl mb-6">Help improve our roads by reporting a pothole in your area</p>
-          <div className="shadow-lg width-500px">
-          <div className="text-left max-w-md mx-auto">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Photo of Pothole
-            </label>
 
-            <label
-              htmlFor="upload-photo"
-              className="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-lg h-40 cursor-pointer hover:bg-blue-50 transition"
-            >
-              {image ? (
-                <img
-                  src={image}
-                  alt="Preview"
-                  className="h-full w-full object-cover rounded-lg"
+
+          <h2 className="text-3xl font-bold mb-5 text-gray-900">
+
+            Report a pothole
+
+          </h2>
+
+
+          <p className="text-xl mb-6">
+
+            Help improve our roads by reporting a pothole in your area
+
+          </p>
+
+
+
+          <div className="shadow-lg">
+
+
+            <div className="text-left max-w-md mx-auto">
+
+
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+
+                Photo of Pothole
+
+              </label>
+
+
+
+              <label
+
+                htmlFor="upload-photo"
+
+                className="flex flex-col items-center justify-center border-2 border-dashed border-blue-300 rounded-lg h-40 cursor-pointer hover:bg-blue-50 transition"
+
+              >
+
+
+                {
+
+                  preview ?
+
+                  (
+
+                    <img
+
+                      src={preview}
+
+                      alt="Preview"
+
+                      className="h-full w-full object-cover rounded-lg"
+
+                    />
+
+                  )
+
+                  :
+
+                  (
+
+                    <>
+
+                      <Camera className="h-8 w-8 text-gray-400"/>
+
+                      <span className="mt-2 text-sm text-gray-500">
+
+                        Upload a photo
+
+                      </span>
+
+                    </>
+
+                  )
+
+                }
+
+
+                <input
+
+                  id="upload-photo"
+
+                  type="file"
+
+                  accept="image/*"
+
+                  onChange={handleFileChange}
+
+                  className="hidden"
+
                 />
-              ) : (
-                <>
-                  <Camera className="h-8 w-8 text-gray-400" />
-                  <span className="mt-2 text-sm text-gray-500">Upload a photo</span>
-                </>
-              )}
-              <input
-                id="upload-photo"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
+
+
+              </label>
+
+
+
+              <p className="font mt-4 text-bold-900">
+
+                Location
+
+              </p>
+
+
+              <textarea
+
+                rows="1"
+
+                className="shadow-md min-h-[1rem] max-h-[3rem] rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+
+                placeholder="Enter location or address of pothole"
+
               />
-            </label>
-            <p className=" font mt-4 text-bold-900">Location</p>
-            <textarea rows="1" className="shadow-md min-h-[1rem] max-h-[3rem] rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"  type="text" placeholder="Enter location or address of pothole"/>
-            <p className="text-sm text-gray-600">Example:MG road,kormangala etc </p>
 
-            <p className="mt-4 text-bold-900">Description</p>
-            <div className="flex flex-col">
-            <textarea
-              rows="4"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full resize-y mb-6 min-h-[3rem] max-h-[12rem] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
 
-            <div className="flex items-center justify-end">
-                <button className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700 text-right" 
-                 onClick={() => {
-                  handleSubmit();
-                  navigate("/dashboard");
-                }}
-              
-                  
-                  >Report</button>
+
+              <p className="text-sm text-gray-600">
+
+                Example: MG road, Koramangala etc
+
+              </p>
+
+
+
+
+              <p className="mt-4 text-bold-900">
+
+                Description
+
+              </p>
+
+
+
+              <textarea
+
+                rows="4"
+
+                value={description}
+
+                onChange={
+                  (e)=>setDescription(e.target.value)
+                }
+
+                className="w-full resize-y mb-6 min-h-[3rem] max-h-[12rem] border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
+              />
+
+
+
+
+              <div className="flex items-center justify-end">
+
+
+                <button
+
+                  onClick={handleSubmit}
+
+                  className="rounded-md bg-blue-600 text-white mb-4 p-2 px-8 hover:bg-blue-700"
+
+                >
+
+                  Report
+
+                </button>
+
+
+              </div>
+
+
             </div>
-            </div>
+
           </div>
-          
-          </div>
+
+
         </div>
+
       </section>
+
+
     </div>
-  )
-}
+
+  );
+
+};

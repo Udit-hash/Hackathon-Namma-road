@@ -30,14 +30,35 @@ export const Signin = () => {
             setPassword(e.target.value)
         }} placeholder="123456" label={"Password"} />
         <div className="pt-4">
-          <Button onClick={async(e)=>{
-                const response=await axios.post("http://localhost:3000/api/v1/user/signin",{
-                    email,
-                    password
-          });
-                localStorage.setItem("token",response.data.token);
-                navigate("/dashboard")
-          }} label={"Sign in"} />
+          <Button 
+            onClick={async () => {
+              try {
+                const response = await axios.post("http://localhost:3000/api/v1/user/signin", {
+                  email,
+                  password
+                });
+              
+                localStorage.setItem("token", response.data.token);
+              
+                // Fetch user data to know if admin
+                const me = await axios.get("http://localhost:3000/api/v1/user/me", {
+                  headers: {
+                    Authorization: `Bearer ${response.data.token}`
+                  }
+                });
+              
+                if (me.data.role === "admin") {
+                  navigate("/admin");
+                } else {
+                  navigate("/dashboard");
+                }
+              
+              } catch (err) {
+                alert("Invalid login");
+              }
+            }} 
+            label={"Sign in"} />
+
         </div>
         <ButtonWarning label={"Don't have an account?"} buttonText={"Sign up"} to={"/signup"} />
       </div>
